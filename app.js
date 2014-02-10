@@ -1,7 +1,7 @@
 var express = require('express');
 var app = express();
 var path = require('path')
-
+var cronJob = require('cron').CronJob;
 
 
 var dbURL = "nodeapps";
@@ -17,6 +17,10 @@ function noteType(userid,note){
 }
 
 
+new cronJob('28 21 * * *', function(){
+    var tod = new Date();
+    console.log(tod);
+}, null, true, "Europe/London GMT");
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3030);
@@ -80,101 +84,59 @@ app.post('/new',function(req,res){
 /****************API****************/
 
 app.get('/api/allNotes', function(req, res){
-	var actors = [];
 
 	db.notes.find().toArray(function(err,notes){
 		res.end(JSON.stringify(notes));
-		 /*if( err || !notes) 
-		 	{
-	 			console.log("No users found");
-			}else{
-				 res.render('index', {
-            		title: 'Mongo',
-            		entries:notes
-        		});
-			}*/
-			/*res.render('index', {
-            		title: 'Mongo',
-            		entries:notes,
-            		other:notes.length
-        		});*/
-
-	  		//else notes.forEach( function(actor) {
-	    	//	actors.push(actor);
-    		//	res.render('index',{title : "Mongo Entries", entries:notes});
-	      });
-
-		//db.notes.findAll(function(err,acts){
-			
-
-		//});
-
-		//res.setHeader("Content-Type", "application/json"); //Solution!
-		//res.writeHead(200);
-		//res.end(JSON.stringify(notes));
-		//res.render("viewer.jade",actors);
-		//res.send(notes);
-//	});
+  	});
 }); // End App Get
 
 
 
 app.post('/api/findNote', function(req, res) 
 {
-    	//var name = req.body.name,
-      	//  color = req.body.color;
-		var firstName = req.body.first + "";
 
-    	if(res.headerSent == false)
-    	{
-    		res.setHeader("Content-Type", "application/json"); //Solution!
-			res.writeHead(200);	
-    	}
+	var firstName = req.body.first + "";
 
-		db.notes.find({first:firstName},function(err,notes)
+	if(res.headerSent == false)
+	{
+		res.setHeader("Content-Type", "application/json"); //Solution!
+		res.writeHead(200);	
+	}
+
+	db.notes.find({first:firstName},function(err,notes)
+	{
+		var mongCount = 0;
+		console.log(notes);
+		if( err || !notes) 
 		{
-			var mongCount = 0;
-			console.log(notes);
-			if( err || !notes) 
+			//nothing found
+		}
+  		else notes.forEach( function(item) 
+  		{
+    		mongCount ++;
+    		res.send(JSON.stringify(notes));
+    		
+      	});
+			
+			if(mongCount == 0 )
 			{
-				console.log("No female users found");
-				//res.send("@");
+				res.send('[{Error : "0 found"}]');	    		
 			}
-	  		else notes.forEach( function(actor) 
-	  		{
-	    		//actors.push(actor);
-	    		mongCount ++;
-	    		res.send(JSON.stringify(notes));
-	    		
-	      	});
-  			
-  			if(mongCount == 0 )
-  			{
-  				res.send('[{Error : "0 found"}]');	    		
-  			}
-		});
+	});
 		
 });
 
 app.put("/api/newNote",function(req,res){
+	var item = req.body;
 
-	var newActor = req.body;
-	console.log(newActor.first);
-
-	db.notes.save(newActor, function(err, saved) {
+	db.notes.save(item, function(err, saved) {
   		if( err || !saved ) console.log("User not saved");
 
   		else res.send('{"Message" : "User Saved"}');
 	});
-
 });
-
-
-
-
 
 try{
 	app.listen(3030);	
 } catch(err){console.log(err);}
 
-console.log("finished");
