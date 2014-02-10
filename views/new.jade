@@ -1,0 +1,16 @@
+extends layout
+
+block content
+	h1= title
+	div.main
+		div.newNote
+			form( method="post")
+				div.noteContent
+					span.titleLabel Note :
+					textarea(type="text", name="note",id="newNoteTitle")
+				div.noteReminder
+					span.titleLabel Reminder Date : 
+					input(type='text' class="datepicker" name="reminderDate" id="reminderDate")
+				div.submitter
+					input(type="submit",value="Save Note" class='btn btn-primary')
+		a(href="/")!= "Node List"

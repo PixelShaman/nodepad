@@ -1,0 +1,33 @@
+body {
+	padding: 50px;
+	font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+	font-family: 'Montserrat', sans-serif;
+	background-color: #efefef;
+}
+a {
+  color: #00b7ff;
+}
+
+
+.notes{
+
+}
+
+.item.even{
+	background-color: #eaeaea;
+	width:40%;
+}
+
+.item.odd{
+	background-color: white;
+	width:30%;
+}
+
+.notes>.item{
+	border:1px solid #d6d6d6;
+	border-radius: 5px;
+	margin-bottom:5px;
+	padding:10px;
+	list-style: none;
+
+}

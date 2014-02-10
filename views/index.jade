@@ -1,0 +1,20 @@
+extends layout
+
+block content
+	h1= title
+
+	div.pageContent
+		div.row
+			div.col-md-9
+				div.entries
+					ul.notes		
+						-var i= -1
+						for note in entries
+							- ++ i
+							li(class=(i % 2 == 0) ? 'item odd' : 'item even')
+								span.noteText #{note.note}
+								span.noteReminderDate #{note.reminderDate}
+		a(href='/new')!= "New"
+							
+							
+
