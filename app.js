@@ -2,13 +2,13 @@ var express = require('express');
 var app = express();
 var path = require('path')
 var cronJob = require('cron').CronJob;
-
+var ObjectID = require('mongodb').ObjectID;
+var validation = require('validator');
+var email   = require("emailjs/email");
 
 var dbURL = "nodeapps";
 var collections = ["notes"];
 var db = require("mongojs").connect(dbURL,collections);
-
-console.log("started");
 
 function noteType(userid,note){
 	this.userid = userid;
@@ -16,11 +16,46 @@ function noteType(userid,note){
 	this.reminderDate;
 }
 
-
-new cronJob('28 21 * * *', function(){
+new cronJob('00 00 * * *', function(){
     var tod = new Date();
-    console.log(tod);
+
+    var formattedDay = (tod.getUTCDate());
+    if(formattedDay<10){
+    	formattedDay="0" + formattedDay +"";
+    }
+
+    var formattedMonth = (tod.getUTCMonth()+1);
+    if(formattedMonth<10){
+    	formattedMonth="0" + formattedMonth +"";
+    }
+
+    var formatted = formattedMonth.concat(('/'),(formattedDay+'/'),tod.getUTCFullYear());
+    db.notes.find({reminderDate: formatted}, function(err, note) {
+    	//Email with emailjs
+    });
+
 }, null, true, "Europe/London GMT");
+
+function validateNote(newNote){
+var errors=new Array();
+var isValid=true;
+
+if (newNote.reminderDate.trim().length>0)
+	{
+		isValid = validation.isValidDate(newNote.reminderDate);
+		if (!isValid )
+		{
+			errors[errors.length] = "Invalid Date Format";
+		}
+	}
+
+ 	if(newNote.note.trim().length<=0)
+ 	{
+ 		isValid = false;
+ 		errors[errors.length] = "Notes cannot be empty";
+ 	}
+ 	return errors;
+}
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3030);
@@ -56,84 +91,100 @@ app.get('/',function(req,res){
 	  });
 });
 
-app.get('/new',function(req,res){
-	db.notes.find().toArray(function(err,notes){
-		res.render('new', {
+
+
+app.get(('/delete/:mnid') ,function(req,res){
+	
+	var thisNoteID = req.params.mnid;
+	var objID = new ObjectID(thisNoteID);
+
+	db.notes.remove({_id: objID}, function(err, note) {
+	});
+	res.redirect('/');
+});
+
+app.post(('/edit/:mnid') ,function(req,res){
+	var thisNoteID = req.params.mnid;
+	var objID = new ObjectID(thisNoteID);
+	var newNote = {userid : 1,_id:objID, note:req.param('note'),reminderDate:req.param('reminderDate')};
+	var saveSuccess = false;
+ 	var errors=new Array(); 
+ 	errors = validateNote(newNote);
+
+	if(errors.length<=0)
+	{
+		db.notes.update({_id:ObjectID},{$set:{note:req.param('note'),reminderDate:req.param('reminderDate')}}, 
+			function(err, saved) {
+	  		if( err || !saved ) {
+
+	  		}else {
+  				saveSuccess = true;
+	  			res.redirect('/');
+	  		};
+		});	
+	}else{
+		res.render('edit', {
+			title: 'NodePad',
+			pageErrors:errors,
+			retrievedNote:newNote
+		});
+	}
+});
+
+
+app.get(('/edit/:mnid') ,function(req,res){
+	
+	var thisNoteID = req.params.mnid;
+	var objID = new ObjectID(thisNoteID);
+
+	db.notes.findOne({_id: objID}, function(err, note) {
+		if(note.reminderDate == undefined)
+		{
+			note.reminderDate = '';
+		}
+
+		var errors=new Array(); 
+		res.render('edit', {
 	    		title: 'NodePad',
-	    		entries:notes,
-	    		other:notes.length
+	    		pageErrors:errors,
+	    		retrievedNote:note
 			});
-	  });
+	});
+
+});
+
+app.get('/new',function(req,res){
+	var errors=new Array(); 
+	res.render('new', {
+		title: 'NodePad',
+		pageErrors:errors
+	});
 });
 
 app.post('/new',function(req,res){
 
 	var newNote = {userid : 1, note:req.param('note'),reminderDate:req.param('reminderDate')};
+	var saveSuccess = false;
+ 	var errors=new Array(); 
+ 	errors = validateNote(newNote);
 
-	db.notes.save(newNote, function(err, saved) {
-  		if( err || !saved ) {
-  			//not saved
-  		}else {
-  			res.send('{"Message" : "User Saved"}');
-  		};
-	});
-
-});
-
-
-/****************API****************/
-
-app.get('/api/allNotes', function(req, res){
-
-	db.notes.find().toArray(function(err,notes){
-		res.end(JSON.stringify(notes));
-  	});
-}); // End App Get
-
-
-
-app.post('/api/findNote', function(req, res) 
-{
-
-	var firstName = req.body.first + "";
-
-	if(res.headerSent == false)
+	if(errors.length<=0)
 	{
-		res.setHeader("Content-Type", "application/json"); //Solution!
-		res.writeHead(200);	
-	}
+		db.notes.save(newNote, function(err, saved) {
+	  		if( err || !saved ) {
 
-	db.notes.find({first:firstName},function(err,notes)
-	{
-		var mongCount = 0;
-		console.log(notes);
-		if( err || !notes) 
-		{
-			//nothing found
-		}
-  		else notes.forEach( function(item) 
-  		{
-    		mongCount ++;
-    		res.send(JSON.stringify(notes));
-    		
-      	});
-			
-			if(mongCount == 0 )
-			{
-				res.send('[{Error : "0 found"}]');	    		
-			}
-	});
+	  		}else {
+  				saveSuccess = true;
+	  			res.redirect('/');
+	  		};
+		});	
+	}else{
 		
-});
-
-app.put("/api/newNote",function(req,res){
-	var item = req.body;
-
-	db.notes.save(item, function(err, saved) {
-  		if( err || !saved ) console.log("User not saved");
-
-  		else res.send('{"Message" : "User Saved"}');
-	});
+		res.render('new', {
+			title: 'NodePad',
+			pageErrors:errors
+		});
+	}
 });
 
 try{

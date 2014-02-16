@@ -5,3 +5,31 @@ body {
 a {
   color: #00b7ff;
 }
+
+
+.noteContent textarea{
+	border: 1px solid #D6D6D6;
+	border-radius: 5px;
+	display: block;
+	margin-top:10px;
+}
+
+
+.noteReminder input{
+	border: 1px solid #D6D6D6;
+	border-radius: 5px;
+	height: 30px;
+	display: block;
+	margin-bottom: 10px;
+}
+
+.titleLabel{
+	vertical-align: top;
+}
+
+
+.main{
+	display: block;
+	margin: auto;
+	width: 40%;
+}

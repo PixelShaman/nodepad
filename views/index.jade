@@ -14,7 +14,8 @@ block content
 							li(class=(i % 2 == 0) ? 'item odd' : 'item even')
 								span.noteText #{note.note}
 								span.noteReminderDate #{note.reminderDate}
+								a( class="btn btn-info" href='/edit/' + note._id)!= "Edit"
+
 		a(href='/new')!= "New"
-							
-							
+
 

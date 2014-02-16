@@ -1,0 +1,27 @@
+extends layout
+
+block content
+	h1= title
+	div.main
+		div.newNote
+			form( method="post")
+				div.noteContent
+					span.titleLabel Note :
+					textarea(type="text", name="note",id="newNoteTitle") #{retrievedNote.note}
+				div.noteReminder
+					span.titleLabel Reminder Date : 
+					input(type='text' class="datepicker" name="reminderDate" id="reminderDate" value='#{retrievedNote.reminderDate+" "}' ) 
+				div.submitter
+					input(type="submit",value="Save Note" class='btn btn-primary') 
+				div.deleter
+					a( class='btn btn-danger' href='/delete/'  + retrievedNote._id)!= "Delete"			
+					
+		a( class='addmargin' href="/")!= "Node List"
+
+		div.errors
+			-var i= -1
+				- ++ i
+				for err in pageErrors
+					span.error #{err}
+
+        

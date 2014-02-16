@@ -13,4 +13,10 @@ block content
 					input(type='text' class="datepicker" name="reminderDate" id="reminderDate")
 				div.submitter
 					input(type="submit",value="Save Note" class='btn btn-primary')
-		a(href="/")!= "Node List"
+		a( class='addmargin' href="/")!= "Node List"
+
+		div.errors
+			-var i= -1
+				- ++ i
+				for err in pageErrors
+					span.error #{err}
